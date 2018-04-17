@@ -14,11 +14,15 @@ module WithAdvisoryLock
     def execute_successful?(sp_function:, lock_owner:, lock_mode: nil)
       case sp_function
       when :sp_getapplock
-        connection.execute_procedure(sp_function, @lock_name, lock_mode, lock_owner, @timeout_seconds)
+        if @timeout
+          connection.execute_procedure(sp_function, @lock_name, lock_mode, lock_owner, @timeout_seconds)
+        else
+          connection.execute_procedure(sp_function, @lock_name, lock_mode, lock_owner)
+        end
       when :sp_releaseapplock
         connection.execute_procedure(sp_function, @lock_name, lock_owner)
       end
-      connection.raw_connection.return_code == 0
+      connection.raw_connection.return_code >= 0
     end
   end
 end
